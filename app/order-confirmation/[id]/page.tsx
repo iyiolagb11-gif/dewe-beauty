@@ -18,7 +18,7 @@ export default function ConfirmationPage({
           <p className="muted" style={{ marginTop: 8 }}>📧 A confirmation email is on its way to your inbox.</p>
         ) : (
           <p className="muted" style={{ marginTop: 8 }}>
-            📧 No confirmation email was sent — email is not configured yet (set <code>RESEND_API_KEY</code> + <code>ORDER_FROM_EMAIL</code> to enable it).
+            📧 No confirmation email was sent — email is not configured yet (set <code>RESEND_API_KEY</code> or SMTP vars in <code>.env</code>, then restart the server).
             No real payment was taken. This order is stored in Postgres when DATABASE_URL is set, otherwise kept as a mock confirmation.
           </p>
         )}

@@ -36,8 +36,11 @@ export async function sendOrderConfirmation(input: OrderEmailInput): Promise<Ema
   const text = buildOrderEmailText(input);
   const adminBcc = process.env.ADMIN_EMAIL;
 
-  // 1) Resend (preferred once you own a verified domain)
+  // 1) Resend (preferred once you own a verified domain).
+  // If Resend is configured but rejects the send (e.g. onboarding address
+  // mailing a non-account email), fall through to SMTP instead of failing.
   const apiKey = process.env.RESEND_API_KEY;
+  let lastError: string | undefined;
   if (apiKey) {
     const from = process.env.ORDER_FROM_EMAIL || 'DEWE Beauty <onboarding@resend.dev>';
     try {
@@ -52,15 +55,12 @@ export async function sendOrderConfirmation(input: OrderEmailInput): Promise<Ema
           text,
         }),
       });
-      if (!res.ok) {
-        const err = await res.text().catch(() => 'resend error');
-        console.warn('[mail:resend-failed]', res.status, err);
-        return { sent: false, provider: 'resend', reason: `resend ${res.status}: ${err.slice(0, 200)}` };
-      }
-      return { sent: true, provider: 'resend' };
+      if (res.ok) return { sent: true, provider: 'resend' };
+      lastError = `resend ${res.status}: ${(await res.text().catch(() => 'resend error')).slice(0, 200)}`;
+      console.warn('[mail:resend-failed]', lastError, '— trying SMTP fallback');
     } catch (e: any) {
-      console.warn('[mail:resend-exception]', e?.message);
-      return { sent: false, provider: 'resend', reason: e?.message || 'send failed' };
+      lastError = e?.message || 'resend send failed';
+      console.warn('[mail:resend-exception]', lastError, '— trying SMTP fallback');
     }
   }
 
@@ -90,5 +90,10 @@ export async function sendOrderConfirmation(input: OrderEmailInput): Promise<Ema
   }
 
   console.log(`[mail:mock] to=${input.to} subject="${subject}"\n${text}`);
-  return { sent: false, reason: 'no-provider: set RESEND_API_KEY or SMTP_HOST/SMTP_USER/SMTP_PASS to send real mail' };
+  return {
+    sent: false,
+    reason: lastError
+      ? `${lastError}; no SMTP fallback configured (set SMTP_HOST/SMTP_USER/SMTP_PASS)`
+      : 'no-provider: set RESEND_API_KEY or SMTP_HOST/SMTP_USER/SMTP_PASS to send real mail',
+  };
 }
