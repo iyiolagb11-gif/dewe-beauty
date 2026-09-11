@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/components/CartProvider';
 import { formatPrice } from '@/lib/data';
 
@@ -23,9 +24,16 @@ export default function CartPage() {
           <div style={{ marginTop: 12 }}>
             {items.map((i) => (
               <div className="cart-row" key={i.productId}>
-                <div>
-                  <div style={{ fontWeight: 700 }}>{i.name}</div>
-                  <div className="muted" style={{ fontSize: 13 }}>{formatPrice(i.priceCents)} each</div>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  {i.image ? (
+                    <span style={{ position: 'relative', width: 56, height: 56, borderRadius: 12, overflow: 'hidden', background: 'var(--blush)', flexShrink: 0, display: 'inline-block' }}>
+                      <Image src={i.image} alt={i.name} fill sizes="56px" style={{ objectFit: 'cover' }} />
+                    </span>
+                  ) : null}
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{i.name}</div>
+                    <div className="muted" style={{ fontSize: 13 }}>{formatPrice(i.priceCents)} each</div>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button className="qty-btn" onClick={() => setQty(i.productId, i.qty - 1)}>-</button>

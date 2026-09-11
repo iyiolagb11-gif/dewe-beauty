@@ -4,7 +4,13 @@ import { orderSchema } from '@/lib/validations';
 import { PRODUCTS } from '@/lib/data';
 import { sendOrderConfirmation } from '@/lib/mail';
 
-function priceFor(productId: string) {
+async function priceFor(productId: string) {
+  if (prisma) {
+    try {
+      const row = await prisma.product.findUnique({ where: { id: productId }, select: { priceCents: true } });
+      if (row) return row.priceCents;
+    } catch {}
+  }
   return PRODUCTS.find((p) => p.id === productId)?.priceCents;
 }
 
@@ -15,9 +21,11 @@ export async function POST(req: Request) {
   const { email, name, address, city, zip, items } = parsed.data;
 
   let totalCents = 0;
+  const prices = new Map<string, number>();
   for (const it of items) {
-    const price = priceFor(it.productId);
+    const price = await priceFor(it.productId);
     if (price == null) return NextResponse.json({ error: `Unknown product ${it.productId}` }, { status: 400 });
+    prices.set(it.productId, price);
     totalCents += price * it.qty;
   }
   const shipping = totalCents >= 3500 ? 0 : 495;
@@ -28,7 +36,7 @@ export async function POST(req: Request) {
       const order = await prisma.order.create({
         data: {
           email, name, address, city, zip, totalCents, status: 'mock_completed',
-          items: { create: items.map((it) => ({ productId: it.productId, qty: it.qty, priceCents: priceFor(it.productId)! })) },
+          items: { create: items.map((it) => ({ productId: it.productId, qty: it.qty, priceCents: prices.get(it.productId)! })) },
         },
         include: { items: true },
       });

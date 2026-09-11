@@ -140,7 +140,8 @@ section{ padding:96px 0; }
 .p-card:nth-child(2){ --tilt:2deg; }
 .p-card:nth-child(3){ --tilt:-2deg; }
 .p-card:nth-child(4){ --tilt:3deg; }
-.p-card .img{ aspect-ratio:1/1; background:var(--blush); border-radius:16px; display:flex; align-items:center; justify-content:center; }
+.p-card .img{ aspect-ratio:1/1; background:var(--blush); border-radius:16px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+.p-card .img img{ object-fit:cover; }
 .p-card .name{ margin-top:16px; font-family:'Unbounded',sans-serif; font-size:15px; font-weight:700; }
 .p-card .desc{ margin-top:4px; font-size:12.5px; color:#8a726a; }
 .p-card .dots{ margin-top:12px; display:flex; gap:6px; }

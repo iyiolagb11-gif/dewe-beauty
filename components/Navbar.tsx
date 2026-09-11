@@ -15,6 +15,7 @@ export default function Navbar() {
           <Link href="/#shades">Shades</Link>
           <Link href="/quiz">Find your shade</Link>
           <Link href="/#community">Community</Link>
+          <Link href="/admin" style={{ fontSize: 12, opacity: 0.6 }}>Admin</Link>
         </div>
         <div className="nav-icons">
           <Link href="/shop" aria-label="Search">
